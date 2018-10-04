@@ -89,19 +89,22 @@ app.post('/login', (req, res) => {
   const { email, password } = req.body
 
   const match = (email) => {
+    let matching;
+
     for (let user in users) {
       if (users[user].email === email) {
-        return users[user]
+        matching = users[user]
       } else {
-        return false
+        matching = false
       }
     }
+    return matching
   }
 
-  const actualUser = match(email)
+  const userMatch = match(email)
 
-  if (actualUser && actualUser.password === password) {
-    res.cookie('user_id', actualUser.id)
+  if (userMatch && userMatch.password === password) {
+    res.cookie('user_id', userMatch.id)
     res.redirect('/urls')
   } else {
     res.status(403).send('Email or password not matching')
@@ -123,15 +126,15 @@ app.post('/register', (req, res) => {
 
   if (!email || !password) {
     res.status(400).send('Email and password required')
+  } else {
+    users[id] = {
+      id,
+      email,
+      password
+    }
+    res.cookie('user_id', id)
+    res.redirect('/urls')
   }
-
-  users[id] = {
-    id,
-    email,
-    password
-  }
-  res.cookie('user_id', id)
-  res.redirect('/urls')
 })
 
 app.listen(PORT, () => {
