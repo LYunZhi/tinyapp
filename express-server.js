@@ -25,28 +25,38 @@ var urlDatabase = {
   "9sm5xK": "http://www.google.com"
 }
 
+const users = {
+  b4525: {
+    id: "b4525",
+    email: "bob@example.com",
+    password: "123"
+  },
+ k98mep: {
+    id: "k98mep",
+    email: "john@example.com",
+    password: "321"
+  }
+}
+
 app.get('/', (req, res) => {
   res.send('Hello!')
 })
 
-app.get('/urls.json', (req, res) => {
-  res.json(urlDatabase)
-})
 
 app.get('/urls', (req, res) => {
   let templateVars = {
-    username: req.cookies.username,
+    user_id: users[req.cookies.user_id],
     urls: urlDatabase
   }
   res.render('urls_index', templateVars)
 })
 
 app.get('/urls/new', (req, res) => {
-  res.render('urls_new', { username: req.cookies.username })
+  res.render('urls_new', { user_id: users[req.cookies.user_id] })
 })
 
 app.get('/urls/:id', (req, res) => {
-  let templateVars = { username: req.cookies.username, shortURL: req.params.id, urls: urlDatabase }
+  let templateVars = { user_id: users[req.cookies.user_id], shortURL: req.params.id, urls: urlDatabase }
   res.render('urls_show', templateVars)
 })
 
@@ -71,19 +81,57 @@ app.post('/urls/:id/delete', (req, res) => {
   res.redirect('/urls')
 })
 
+app.get('/login', (req, res) => {
+  res.render('urls_login', { user_id: users[req.cookies.user_id] })
+})
+
 app.post('/login', (req, res) => {
-  res.cookie('username', req.body.username)
-  res.redirect('/urls')
+  const { email, password } = req.body
+
+  const match = (email) => {
+    for (let user in users) {
+      if (users[user].email === email) {
+        return users[user]
+      } else {
+        return false
+      }
+    }
+  }
+
+  const actualUser = match(email)
+
+  if (actualUser && actualUser.password === password) {
+    res.cookie('user_id', actualUser.id)
+    res.redirect('/urls')
+  } else {
+    res.status(403).send('Email or password not matching')
+  }
 })
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('username')
+  res.clearCookie('user_id')
   res.redirect('/urls')
 })
 
+app.get('/register', (req, res) => {
+  res.render('urls_register', { user_id: users[req.cookies.user_id] })
+})
 
-app.get('/hello', (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+app.post('/register', (req, res) => {
+  const id = generateRandomString()
+  const { email, password } = req.body
+
+  if (!email || !password) {
+    res.status(400).send('Email and password required')
+  }
+
+  users[id] = {
+    id,
+    email,
+    password
+  }
+  res.cookie('user_id', id)
+  res.redirect('/urls')
 })
 
 app.listen(PORT, () => {
