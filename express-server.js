@@ -1,7 +1,8 @@
-var express = require('express')
-var bodyParser = require('body-parser')
-var app = express()
-var PORT = 8080
+const express = require('express')
+const bodyParser = require('body-parser')
+const app = express()
+const bcrypt = require('bcrypt')
+const PORT = 8080
 const cookieParser = require('cookie-parser')
 
 app.use(bodyParser.urlencoded({extended: true}));
@@ -25,17 +26,17 @@ const users = {
   b4525: {
     id: "b4525",
     email: "bob@example.com",
-    password: "123"
+    password: bcrypt.hashSync("123", 10)
   },
  k98mep: {
     id: "k98mep",
     email: "john@example.com",
-    password: "321"
+    password: bcrypt.hashSync("321", 10)
   }
 }
 
 // Generate random 6 string function
-function generateRandomString() {
+const generateRandomString = () => {
   var alphanumeric = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',0,1,2,3,4,5,6,7,8,9]
   var result = ''
 
@@ -82,7 +83,6 @@ app.get('/', (req, res) => {
 app.get('/urls', (req, res) => {
 
   let templateVars;
-
   if (req.cookies.user_id) {
     const filteredLinks = urlsForUsers(req.cookies.user_id)
       templateVars = {
@@ -162,7 +162,7 @@ app.post('/login', (req, res) => {
 
   const userMatch = match(email)
 
-  if (userMatch && userMatch.password === password) {
+  if (userMatch && bcrypt.compareSync(password, userMatch.password)) {
     res.cookie('user_id', userMatch.id)
     res.redirect('/urls')
   } else {
@@ -182,6 +182,7 @@ app.get('/register', (req, res) => {
 app.post('/register', (req, res) => {
   const id = generateRandomString()
   const { email, password } = req.body
+  const hashedPass = bcrypt.hashSync(password, 10);
 
   if (!email || !password) {
     res.status(400).send('Email and password required')
@@ -189,7 +190,7 @@ app.post('/register', (req, res) => {
     users[id] = {
       id,
       email,
-      password
+      password: hashedPass
     }
     res.cookie('user_id', id)
     res.redirect('/urls')
