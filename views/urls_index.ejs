@@ -1,9 +1,13 @@
 <% include ./partials/_header.ejs %>
   <body>
     <div id="linkcontainer">
-    <% for (var value in urls) { %>
-      <div><%= value %> - <%= urls[value] %> - <a href="/urls/<%= value %>">Edit</a> <form style="display: inline" method="POST" action="/urls/<%= value %>/delete"><button>Delete</button></form></div>
-    <% } %>
+      <% if (user_id) { %>
+        <% for (let value in sorted) { %>
+          <div><%= value %> - <%= sorted[value].longURL %> - <a href="/urls/<%= value %>">Edit</a> <form style="display: inline" method="POST" action="/urls/<%= value %>/delete"><button>Delete</button></form></div>
+          <% } %>
+        <% } else { %>
+            <h1>Please login or register first</h1>
+          <% } %>
     </div>
   </body>
 </html>
