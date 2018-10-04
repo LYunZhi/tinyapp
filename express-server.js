@@ -39,7 +39,7 @@ const users = {
 }
 
 app.get('/', (req, res) => {
-  res.send('Hello!')
+  res.redirect('/urls')
 })
 
 
@@ -52,7 +52,11 @@ app.get('/urls', (req, res) => {
 })
 
 app.get('/urls/new', (req, res) => {
-  res.render('urls_new', { user_id: users[req.cookies.user_id] })
+  if (!req.cookies.user_id) {
+    res.redirect('/login')
+  } else {
+    res.render('urls_new', { user_id: users[req.cookies.user_id] })
+  }
 })
 
 app.get('/urls/:id', (req, res) => {
@@ -93,7 +97,7 @@ app.post('/login', (req, res) => {
 
     for (let user in users) {
       if (users[user].email === email) {
-        matching = users[user]
+        return matching = users[user]
       } else {
         matching = false
       }
@@ -102,6 +106,7 @@ app.post('/login', (req, res) => {
   }
 
   const userMatch = match(email)
+  console.log(userMatch)
 
   if (userMatch && userMatch.password === password) {
     res.cookie('user_id', userMatch.id)
