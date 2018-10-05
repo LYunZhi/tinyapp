@@ -1,6 +1,9 @@
 <% include ./partials/_header.ejs %>
   <body>
-    <h1><%= shortURL %>: <%= urls[shortURL].longURL %></h1>
+    <h1>
+      <a href="/u/<%= shortURL %>" target-"_blank">
+        <%= shortURL %></a>: <%= urls[shortURL].longURL %>
+    </h1>
     <form method="POST" action="/urls/<%= shortURL %>">
       <input type="text" name="longURLNew" placeholder="http://">
       <input type="submit" value="Update">
