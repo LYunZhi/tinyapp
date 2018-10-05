@@ -7,7 +7,7 @@
             <%= value %> - <%= sorted[value].longURL %> - <a href="/urls/<%= value %>">Edit</a> <form style="display: inline" method="POST" action="/urls/<%= value %>/delete"><button>Delete</button></form>
           </div>
           <% } %>
-          <div><a href="/urls/new">CREATE NEW SHORT LINKS</a></div>
+          <div><a href="/urls/new">CREATE NEW SHORT LINK</a></div>
         <% } else { %>
             <h1>Please login or register first</h1>
           <% } %>

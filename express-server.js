@@ -111,12 +111,18 @@ app.get('/urls/:id', (req, res) => {
 })
 
 app.get('/u/:shortURL', (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL].longURL
-  res.redirect(longURL)
+
+  if (!urlDatabase[req.params.shortURL]) {
+    res.send('Does not exist!')
+  } else {
+    let longURL = urlDatabase[req.params.shortURL].longURL
+    res.redirect(longURL)
+  }
 })
 
 //When a user creates a new url, the post request is sent to the below route
 app.post('/urls', (req, res) => {
+
   const shortForm = generateRandomString()
   urlDatabase[shortForm] = {
     userID: req.session.user_id,
@@ -147,6 +153,9 @@ app.post('/urls/:id/delete', (req, res) => {
 })
 
 app.get('/login', (req, res) => {
+  if (req.session.user_id) {
+    res.redirect('/urls')
+  }
   res.render('urls_login', { user_id: users[req.session.user_id] })
 })
 
@@ -175,6 +184,9 @@ app.post('/logout', (req, res) => {
 })
 
 app.get('/register', (req, res) => {
+  if (req.session.user_id) {
+    res.redirect('/urls')
+  }
   res.render('urls_register', { user_id: users[req.session.user_id] })
 })
 
@@ -182,6 +194,17 @@ app.post('/register', (req, res) => {
   const id = generateRandomString()
   const { email, password } = req.body
   const hashedPass = bcrypt.hashSync(password, 10);
+
+  let emailExist = false
+
+  for (let user in users) {
+    if (users[user].email === email) {
+      emailExist = true
+    }
+  }
+  if (emailExist) {
+    res.send('The email you provided is already registered!')
+  }
 
   if (!email || !password) {
     res.status(400).send('Email and password required')
