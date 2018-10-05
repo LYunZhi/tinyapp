@@ -3,10 +3,13 @@ const bodyParser = require('body-parser')
 const app = express()
 const bcrypt = require('bcrypt')
 const PORT = 8080
-const cookieParser = require('cookie-parser')
+const cookieSession = require('cookie-session')
 
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser())
+app.use(cookieSession({
+  name: 'session',
+  secret: 'A dog jumped over the fence'
+}))
 app.set('view engine', 'ejs')
 
 const urlDatabase = {
@@ -83,16 +86,16 @@ app.get('/', (req, res) => {
 app.get('/urls', (req, res) => {
 
   let templateVars;
-  if (req.cookies.user_id) {
-    const filteredLinks = urlsForUsers(req.cookies.user_id)
+  if (req.session.user_id) {
+    const filteredLinks = urlsForUsers(req.session.user_id)
       templateVars = {
-      user_id: users[req.cookies.user_id],
+      user_id: users[req.session.user_id],
       urls: urlDatabase,
       sorted: filteredLinks
     }
   } else {
     templateVars = {
-      user_id: users[req.cookies.user_id],
+      user_id: users[req.session.user_id],
     }
   }
 
@@ -100,21 +103,21 @@ app.get('/urls', (req, res) => {
 })
 
 app.get('/urls/new', (req, res) => {
-  if (!req.cookies.user_id) {
+  if (!req.session.user_id) {
     res.redirect('/login')
   } else {
-    res.render('urls_new', { user_id: users[req.cookies.user_id] })
+    res.render('urls_new', { user_id: users[req.session.user_id] })
   }
 })
 
 app.get('/urls/:id', (req, res) => {
-  let templateVars = { user_id: users[req.cookies.user_id], shortURL: req.params.id, urls: urlDatabase }
+  let templateVars = { user_id: users[req.session.user_id], shortURL: req.params.id, urls: urlDatabase }
 
-  if (!req.cookies.user_id) {
+  if (!req.session.user_id) {
     res.send('Please login first!')
   } else if (!urlDatabase[req.params.id]) {
     res.send('Does not exist!')
-  } else if (urlDatabase[req.params.id].userID !== req.cookies.user_id) {
+  } else if (urlDatabase[req.params.id].userID !== req.session.user_id) {
     res.send('No permission to view this page!')
   } else {
    res.render('urls_show', templateVars)
@@ -127,15 +130,20 @@ app.get('/u/:shortURL', (req, res) => {
   res.redirect(longURL)
 })
 
+//Bug in this section
 app.post('/urls', (req, res) => {
-  var shortForm = generateRandomString()
-  urlDatabase[shortForm] = 'http://' + req.body.longURL
+  const shortForm = generateRandomString()
+  urlDatabase[shortForm] = {
+    userID: req.session.user_id,
+    shortURL: shortForm,
+    longURL: 'http://' + req.body.longURL
+  }
   res.redirect('/urls/' + shortForm)
 })
 
 app.post('/urls/:id', (req, res) => {
   const linkOwner = urlDatabase[req.params.id].userID
-  if (req.cookies.user_id !== linkOwner) {
+  if (req.session.user_id !== linkOwner) {
     res.send('Sorry, no permission to do that')
   } else {
     urlDatabase[req.params.id].longURL = 'http://' + req.body.longURLNew
@@ -145,7 +153,7 @@ app.post('/urls/:id', (req, res) => {
 
 app.post('/urls/:id/delete', (req, res) => {
   const linkOwner = urlDatabase[req.params.id].userID
-  if (req.cookies.user_id !== linkOwner) {
+  if (req.session.user_id !== linkOwner) {
     res.send('Sorry, no permission to do that')
   } else {
     delete urlDatabase[req.params.id]
@@ -154,7 +162,7 @@ app.post('/urls/:id/delete', (req, res) => {
 })
 
 app.get('/login', (req, res) => {
-  res.render('urls_login', { user_id: users[req.cookies.user_id] })
+  res.render('urls_login', { user_id: users[req.session.user_id] })
 })
 
 app.post('/login', (req, res) => {
@@ -163,7 +171,7 @@ app.post('/login', (req, res) => {
   const userMatch = match(email)
 
   if (userMatch && bcrypt.compareSync(password, userMatch.password)) {
-    res.cookie('user_id', userMatch.id)
+    req.session.user_id = userMatch.id
     res.redirect('/urls')
   } else {
     res.status(403).send('Email or password not matching')
@@ -171,12 +179,12 @@ app.post('/login', (req, res) => {
 })
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id')
+  req.session = null
   res.redirect('/urls')
 })
 
 app.get('/register', (req, res) => {
-  res.render('urls_register', { user_id: users[req.cookies.user_id] })
+  res.render('urls_register', { user_id: users[req.session.user_id] })
 })
 
 app.post('/register', (req, res) => {
@@ -192,7 +200,7 @@ app.post('/register', (req, res) => {
       email,
       password: hashedPass
     }
-    res.cookie('user_id', id)
+    req.session.user_id = id
     res.redirect('/urls')
   }
 })
