@@ -4,11 +4,11 @@ TinyApp is an app that shortens urls. It is built with node and express and make
 
 # Dependencies
 
-  -bcrypt
-  -body-parser
-  -cookie-session
-  -ejs
-  -express
+  * bcrypt
+  * body-parser
+  * cookie-session
+  * ejs
+  * express
 
 # Getting Started
 
