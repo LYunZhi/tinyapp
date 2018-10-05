@@ -64,7 +64,10 @@ const urlsForUsers = (id) => {
 }
 
 app.get('/', (req, res) => {
-  res.redirect('/urls')
+  if (req.session.user_id) {
+    res.redirect('/urls')
+  }
+  res.redirect('/login')
 })
 
 app.get('/urls', (req, res) => {
