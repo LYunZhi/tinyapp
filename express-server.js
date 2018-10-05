@@ -48,7 +48,6 @@ const generateRandomString = () => {
   for (let i = 0; i < 6; i++) {
     result += alphanumeric.charAt(Math.floor(Math.random() * alphanumeric.length))
   }
-
   return result
 }
 
@@ -68,7 +67,6 @@ app.get('/', (req, res) => {
   res.redirect('/urls')
 })
 
-
 app.get('/urls', (req, res) => {
 
   let templateVars;
@@ -84,7 +82,6 @@ app.get('/urls', (req, res) => {
       user_id: users[req.session.user_id],
     }
   }
-
   res.render('urls_index', templateVars)
 })
 
@@ -111,12 +108,11 @@ app.get('/urls/:id', (req, res) => {
 })
 
 app.get('/u/:shortURL', (req, res) => {
-
   let longURL = urlDatabase[req.params.shortURL].longURL
   res.redirect(longURL)
 })
 
-//Bug in this section
+//When a user creates a new url, the post request is sent to the below route
 app.post('/urls', (req, res) => {
   const shortForm = generateRandomString()
   urlDatabase[shortForm] = {
