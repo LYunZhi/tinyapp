@@ -63,21 +63,6 @@ const urlsForUsers = (id) => {
   return object
 }
 
-// Function to match given email with email from users database
-
-const match = (email) => {
-  let matching;
-
-  for (let user in users) {
-    if (users[user].email === email) {
-      return matching = users[user]
-    } else {
-      matching = false
-    }
-  }
-  return matching
-}
-
 app.get('/', (req, res) => {
   res.redirect('/urls')
 })
@@ -168,7 +153,13 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const { email, password } = req.body
 
-  const userMatch = match(email)
+  let userMatch = false
+
+  for (let user in users) {
+    if (users[user].email === email) {
+      userMatch = users[user]
+    }
+  }
 
   if (userMatch && bcrypt.compareSync(password, userMatch.password)) {
     req.session.user_id = userMatch.id
