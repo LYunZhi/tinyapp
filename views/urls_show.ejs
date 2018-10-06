@@ -4,7 +4,7 @@
       <a href="/u/<%= shortURL %>" target-"_blank">
         <%= shortURL %></a>: <%= urls[shortURL].longURL %>
     </h1>
-    <form method="POST" action="/urls/<%= shortURL %>">
+    <form method="POST" action="/urls/<%= shortURL %>?_method=PUT">
       <input type="text" name="longURLNew" placeholder="http://">
       <input type="submit" value="Update">
     </form>

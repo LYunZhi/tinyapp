@@ -4,6 +4,7 @@ const app = express()
 const bcrypt = require('bcrypt')
 const PORT = 8080
 const cookieSession = require('cookie-session')
+const methodOverride = require('method-override')
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
@@ -11,6 +12,7 @@ app.use(cookieSession({
   secret: 'A dog jumped over the fence'
 }))
 app.set('view engine', 'ejs')
+app.use(methodOverride('_method'))
 
 //Sample databases below
 
@@ -132,7 +134,7 @@ app.post('/urls', (req, res) => {
   res.redirect('/urls/' + shortForm)
 })
 
-app.post('/urls/:id', (req, res) => {
+app.put('/urls/:id', (req, res) => {
   const linkOwner = urlDatabase[req.params.id].userID
   if (req.session.user_id !== linkOwner) {
     res.send('Sorry, no permission to do that')
@@ -142,7 +144,7 @@ app.post('/urls/:id', (req, res) => {
   }
 })
 
-app.post('/urls/:id/delete', (req, res) => {
+app.delete('/urls/:id/delete', (req, res) => {
   const linkOwner = urlDatabase[req.params.id].userID
   if (req.session.user_id !== linkOwner) {
     res.send('Sorry, no permission to do that')
@@ -215,7 +217,6 @@ app.post('/register', (req, res) => {
       password: hashedPass
     }
     req.session.user_id = id
-    console.log(users)
     res.redirect('/urls')
   }
 })
