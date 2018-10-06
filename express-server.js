@@ -65,8 +65,20 @@ const urlsForUsers = (id) => {
   return object
 }
 
+// Function to check for user login
+
+const loggedIn = (id) => {
+
+  for (let user in users) {
+    if (user === id) {
+      return true
+    }
+  }
+  return false
+}
+
 app.get('/', (req, res) => {
-  if (req.session.user_id) {
+  if (loggedIn(req.session.user_id)) {
     res.redirect('/urls')
   }
   res.redirect('/login')
@@ -75,7 +87,7 @@ app.get('/', (req, res) => {
 app.get('/urls', (req, res) => {
 
   let templateVars;
-  if (req.session.user_id) {
+  if (loggedIn(req.session.user_id)) {
     const filteredLinks = urlsForUsers(req.session.user_id)
       templateVars = {
       user_id: users[req.session.user_id],
@@ -91,7 +103,7 @@ app.get('/urls', (req, res) => {
 })
 
 app.get('/urls/new', (req, res) => {
-  if (!req.session.user_id) {
+  if (!loggedIn(req.session.user_id)) {
     res.redirect('/login')
   } else {
     res.render('urls_new', { user_id: users[req.session.user_id] })
@@ -99,9 +111,12 @@ app.get('/urls/new', (req, res) => {
 })
 
 app.get('/urls/:id', (req, res) => {
-  let templateVars = { user_id: users[req.session.user_id], shortURL: req.params.id, urls: urlDatabase }
+  let templateVars = {
+    user_id: users[req.session.user_id],
+    shortURL: req.params.id,
+    urls: urlDatabase }
 
-  if (!req.session.user_id) {
+  if (!loggedIn(req.session.user_id)) {
     res.send('Please login first!')
   } else if (!urlDatabase[req.params.id]) {
     res.send('Does not exist!')
@@ -155,7 +170,7 @@ app.delete('/urls/:id/delete', (req, res) => {
 })
 
 app.get('/login', (req, res) => {
-  if (req.session.user_id) {
+  if (loggedIn(req.session.user_id)) {
     res.redirect('/urls')
   }
   res.render('urls_login', { user_id: users[req.session.user_id] })
@@ -186,7 +201,7 @@ app.post('/logout', (req, res) => {
 })
 
 app.get('/register', (req, res) => {
-  if (req.session.user_id) {
+  if (loggedIn(req.session.user_id)) {
     res.redirect('/urls')
   }
   res.render('urls_register', { user_id: users[req.session.user_id] })
